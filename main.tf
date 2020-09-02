@@ -86,7 +86,7 @@ resource "aws_rds_cluster_instance" "this" {
   count = var.replica_scale_enabled && var.create ? var.replica_scale_min : var.replica_count
 
   identifier                      = "${var.name}-${count.index + 1}"
-  cluster_identifier              = aws_rds_cluster.this.id
+  cluster_identifier              = element(aws_rds_cluster.this.*.id, count.index)
   engine                          = var.engine
   engine_version                  = var.engine_version
   instance_class                  = count.index > 0 ? coalesce(var.instance_type_replica, var.instance_type) : var.instance_type
@@ -154,7 +154,7 @@ resource "aws_appautoscaling_target" "read_replica_count" {
 
   max_capacity       = var.replica_scale_max
   min_capacity       = var.replica_scale_min
-  resource_id        = "cluster:${aws_rds_cluster.this.cluster_identifier}"
+  resource_id        = "cluster:${element(aws_rds_cluster.this.*.cluster_identifier, count.index)}"
   scalable_dimension = "rds:cluster:ReadReplicaCount"
   service_namespace  = "rds"
 }
@@ -200,8 +200,8 @@ resource "aws_security_group_rule" "default_ingress" {
   description = "From allowed SGs"
 
   type                     = "ingress"
-  from_port                = aws_rds_cluster.this.port
-  to_port                  = aws_rds_cluster.this.port
+  from_port                = element(aws_rds_cluster.this.*.port, count.index)
+  to_port                  = element(aws_rds_cluster.this.*.port, count.index)
   protocol                 = "tcp"
   source_security_group_id = element(var.allowed_security_groups, count.index)
   security_group_id        = local.rds_security_group_id
@@ -213,8 +213,8 @@ resource "aws_security_group_rule" "cidr_ingress" {
   description = "From allowed CIDRs"
 
   type              = "ingress"
-  from_port         = aws_rds_cluster.this.port
-  to_port           = aws_rds_cluster.this.port
+  from_port         = element(aws_rds_cluster.this.*.port, count.index)
+  to_port           = element(aws_rds_cluster.this.*.port, count.index)
   protocol          = "tcp"
   cidr_blocks       = var.allowed_cidr_blocks
   security_group_id = local.rds_security_group_id
@@ -231,12 +231,12 @@ resource "aws_secretsmanager_secret" "db" {
 resource "aws_secretsmanager_secret_version" "db" {
   count   = var.create ? 1 : 0
 
-  secret_id     = aws_secretsmanager_secret.db.id
+  secret_id     = element(aws_secretsmanager_secret.db.*.id, count.index)
   secret_string = jsonencode({
-    db_host = aws_rds_cluster.this.endpoint
+    db_host = element(aws_rds_cluster.this.*.endpoint, count.index)
     db_name = var.database_name
-    db_user = aws_rds_cluster.this.master_username
-    db_pass = aws_rds_cluster.this.master_password
-    db_port = aws_rds_cluster.this.port
+    db_user = element(aws_rds_cluster.this.*.master_username, count.index)
+    db_pass = element(aws_rds_cluster.this.*.master_password, count.index)
+    db_port = element(aws_rds_cluster.this.*.port, count.index)
   })
 }
