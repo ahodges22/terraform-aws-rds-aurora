@@ -219,3 +219,24 @@ resource "aws_security_group_rule" "cidr_ingress" {
   cidr_blocks       = var.allowed_cidr_blocks
   security_group_id = local.rds_security_group_id
 }
+
+# Adds DB info into an AWS Secrets Manager secret.
+resource "aws_secretsmanager_secret" "db" {
+  count   = var.create ? 1 : 0
+
+  name = var.name
+  tags = var.tags
+}
+
+resource "aws_secretsmanager_secret_version" "db" {
+  count   = var.create ? 1 : 0
+
+  secret_id     = aws_secretsmanager_secret.db.id
+  secret_string = jsonencode({
+    db_host = aws_rds_cluster.this.endpoint
+    db_name = var.database_name
+    db_user = aws_rds_cluster.this.master_username
+    db_pass = aws_rds_cluster.this.master_password
+    db_port = aws_rds_cluster.this.port
+  })
+}

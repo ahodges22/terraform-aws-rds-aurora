@@ -334,7 +334,13 @@ variable "ca_cert_identifier" {
 }
 
 variable "create" {
-  description = "Conditionally create resources or not."
+  description = "Conditionally create resources or not"
+  type        = bool
+  default     = true
+}
+
+variable "add_secret" {
+  description = "Add DB info into AWS Secrets Manager"
   type        = bool
   default     = true
 }
