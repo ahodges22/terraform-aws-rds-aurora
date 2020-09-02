@@ -332,3 +332,9 @@ variable "ca_cert_identifier" {
   type        = string
   default     = "rds-ca-2019"
 }
+
+variable "create" {
+  description = "Conditionally create resources or not."
+  type        = bool
+  default     = true
+}
