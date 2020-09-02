@@ -46,7 +46,7 @@ resource "aws_rds_cluster" "this" {
   database_name                       = var.database_name
   master_username                     = var.username
   master_password                     = local.master_password
-  final_snapshot_identifier           = "${var.final_snapshot_identifier_prefix}-${var.name}-${random_id.snapshot_identifier.hex}"
+  final_snapshot_identifier           = "${var.final_snapshot_identifier_prefix}-${var.name}-${element(random_id.snapshot_identifier.*.hex, count.index)}"
   skip_final_snapshot                 = var.skip_final_snapshot
   deletion_protection                 = var.deletion_protection
   backup_retention_period             = var.backup_retention_period
