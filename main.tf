@@ -164,7 +164,7 @@ resource "aws_appautoscaling_policy" "autoscaling_read_replica_count" {
 
   name               = "target-metric"
   policy_type        = "TargetTrackingScaling"
-  resource_id        = "cluster:${aws_rds_cluster.this.cluster_identifier}"
+  resource_id        = "cluster:${element(aws_rds_cluster.this.*.cluster_identifier, count.index)}"
   scalable_dimension = "rds:cluster:ReadReplicaCount"
   service_namespace  = "rds"
 
