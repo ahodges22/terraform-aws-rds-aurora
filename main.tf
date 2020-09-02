@@ -1,6 +1,6 @@
 locals {
   port                 = var.port == "" ? var.engine == "aurora-postgresql" ? "5432" : "3306" : var.port
-  master_password      = var.password == "" ? random_password.master_password.result : var.password
+  master_password      = var.password == "" ? element(concat(random_password.master_password.*.result, list("")), 0) : var.password
   db_subnet_group_name = var.db_subnet_group_name == "" ? join("", aws_db_subnet_group.this.*.name) : var.db_subnet_group_name
   backtrack_window     = (var.engine == "aurora-mysql" || var.engine == "aurora") && var.engine_mode != "serverless" ? var.backtrack_window : 0
 
@@ -133,7 +133,7 @@ resource "aws_iam_role" "rds_enhanced_monitoring" {
   count = var.monitoring_interval > 0 && var.create ? 1 : 0
 
   name               = "rds-enhanced-monitoring-${var.name}"
-  assume_role_policy = data.aws_iam_policy_document.monitoring_rds_assume_role.json
+  assume_role_policy = element(data.aws_iam_policy_document.monitoring_rds_assume_role.*.json, count.index)
 
   permissions_boundary = var.permissions_boundary
 
