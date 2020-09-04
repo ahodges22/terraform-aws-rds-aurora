@@ -67,3 +67,13 @@ output "this_security_group_id" {
   description = "The security group ID of the cluster"
   value       = local.rds_security_group_id
 }
+
+output "this_rds_cluster_secret_arn" {
+  description = "The rds secret arn"
+  value       = element(concat(aws_secretsmanager_secret_version.db.*.arn, list("")), 0)
+}
+
+output "this_rds_cluster_secret_id" {
+  description = "The rds secret id"
+  value       = element(concat(aws_secretsmanager_secret_version.db.*.id, list("")), 0)
+}
